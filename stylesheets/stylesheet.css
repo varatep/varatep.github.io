@@ -224,7 +224,8 @@ form {
 /* GENERAL ELEMENT TYPE STYLES */
 
 #main-content h1 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: 2.8em;
   letter-spacing: -1px;
   color: #474747;
@@ -238,7 +239,8 @@ form {
 }
 
 #main-content h2 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: 22px;
   font-weight: bold;
   margin-bottom: 8px;
@@ -252,7 +254,8 @@ form {
 }
 
 #main-content h3 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: 18px;
   font-weight: bold;
   margin-top: 24px;
@@ -261,14 +264,15 @@ form {
 }
 
 #main-content h3:before {
-  content: "///";
+  /*content: "///";*/
   color: #9ddcff;
   padding-right: 0.3em;
   margin-left: -2em;
 }
 
 #main-content h4 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: 15px;
   font-weight: bold;
   color: #474747;
@@ -282,7 +286,8 @@ h4:before {
 }
 
 #main-content h5 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: 14px;
   color: #474747;
 }
@@ -294,7 +299,8 @@ h5:before {
 }
 
 #main-content h6 {
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  /*font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;*/
+  font-family: 'CodeLight';
   font-size: .8em;
   color: #474747;
 }

@@ -1,0 +1,11 @@
+@font-face {
+	font-family: CodeLight;
+	src: url("../fonts/CODE\ Light.otf") format("opentype");
+}
+#main-content h3 {
+	margin-top: 0px;
+    margin-bottom: 0px;
+}
+.subsection {
+    margin-bottom: 0px;
+}
