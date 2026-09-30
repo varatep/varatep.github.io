@@ -1,90 +1,156 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset='utf-8'>
-  <meta http-equiv="X-UA-Compatible" content="chrome=1">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-  <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-  <link rel="stylesheet" type="text/css" href="stylesheets/custom.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Varatep Buranintu · Under construction</title>
+  <meta name="description" content="varatep.github.io is being rebuilt. In the meantime, help Comet the space pup fend off the Nut Armada.">
+  <meta name="theme-color" content="#f6f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#080a16" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="Varatep Buranintu · Under construction">
+  <meta property="og:description" content="A new site is on its way. Until then: space dog vs. squirrels.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%236366f1'/%3E%3Cellipse cx='16' cy='16' rx='15' ry='5' fill='none' stroke='%23fbbf24' stroke-width='2.5' transform='rotate(-20 16 16)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300..700&display=swap">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="assets/js/game.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="./">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="brand-planet" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8b8dff"/>
+              <stop offset="1" stop-color="#db2777"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="9" fill="url(#brand-planet)"/>
+          <ellipse cx="16" cy="16" rx="15" ry="5" fill="none" stroke="#fbbf24" stroke-width="2.5" transform="rotate(-20 16 16)"/>
+        </svg>
+        <span>varatep</span>
+      </a>
+      <nav aria-label="Primary">
+        <a class="nav-link" href="https://github.com/varatep">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
 
-    <title>varatep.github.io by varatep</title>
-    
-  </head>
-
-  <body>
-    <header>
-      <div class="inner">
-        <h1>varatep.github.io</h1>
-        <h2></h2>
-        <a href="https://github.com/varatep" class="button"><small>Follow me on</small> GitHub</a>
+  <main id="main">
+    <section class="container hero" aria-labelledby="hero-title">
+      <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Under construction</p>
+      <h1 id="hero-title" class="hero__title">A new site is <span class="text-gradient">on its way.</span></h1>
+      <p class="hero__lede">
+        I'm rebuilding this corner of the internet from the ground up. While the scaffolding is up,
+        help Comet the space pup keep the Nut Armada away from the launch pad.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="#play">Play the mini game</a>
+        <a class="btn btn--ghost" href="https://github.com/varatep">See my work on GitHub</a>
       </div>
-    </header>
+    </section>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-        <h2>
-            <a name="welcome-to-varatep" class="anchor" href="#welcome-to-varatep"><span class="octicon octicon-link"></span></a>Welcome to ./varatep</h2>
-            <h2>
-              <a name="current-projects" class="anchor" href="#current-projects"><span class="octicon octicon-link"></span></a>Current Projects
-            </h2>
-            <h3>UAV and Airline Operations Center</h3>
-            <p class="subsection">
-              NASA, Dr. Walter Johnson. Dr. Nhut Ho. Team of 8, possibly more from software engineering at csun. Collab with mechanical engineers.
-            </p>
-            <h3>Marriage App for iOS</h3>
-            <p class="subsection">
-              No information available.
-            </p>
-            <h3>Single Page Note Application</h3>
-            <p class="">
-              JAVA backend, angularjs frontend.
-            </p>
-            <h2>
-            <a name="experience" class="anchor" href="#experience"><span class="octicon octicon-link"></span></a>
-            Experience
-            </h2>
-            <p>
-            <ul>
-              <li>ASP.NET 4.0+ MVC 4+</li>
-              <li>AngularJS</li>
-              <li>ExpressJS</li>
-              <li>NodeJS</li>
-              <li>Ruby On Rails</li>
-              <li>Yii PHP</li>
-              <li>Play! Framework (Java)</li>
-              <li>Unity3D</li>
-              <li>MongoDB</li>
-              <li>MS-/My-/Postgre- Sql</li>
-            </ul>
-            </p>
-            <h2>
-              <a name="want-to-hire-varatep-buranintu-" class="anchor" href="#want-to-hire-varatep-buranintu-"><span class="octicon octicon-link"></span></a>
-              Want to hire Varatep Buranintu ?
-              </h2>
+    <section id="play" class="container game-section" aria-labelledby="game-title">
+      <div class="section-head">
+        <h2 id="game-title">Comet vs. the Nut Armada</h2>
+        <p>A tiny survivors-style game. Your weapons fire on their own, so you focus on dodging and picking upgrades.</p>
+      </div>
 
-              <a href='mailto:varatep@buranintu.com'>varatep@buranintu.com</a>
+      <div class="game-shell" id="game-shell" data-state="menu">
+        <canvas id="game" class="game-canvas" tabindex="0" role="img"
+          aria-label="Game area: Comet the space dog fights waves of squirrels, pigeons, raccoons and geese in outer space."></canvas>
 
-            </section>
-
-            <aside id="sidebar">
-
-              <p>Varatep Buranintu<br />
-                818-461-4041<br />
-                <a href='mailto:varatep@buranintu.com'>varatep@buranintu.com</a>
-              </p>
-
-            </aside>
+        <div class="hud">
+          <div class="xp-bar" aria-hidden="true">
+            <span class="xp-bar__fill" id="xp-fill"></span>
+            <span class="xp-bar__label" id="hud-level">LV 1</span>
+          </div>
+          <div class="hud__row">
+            <div class="hp">
+              <span class="hp__label">HP</span>
+              <span class="hp-bar"><span class="hp-bar__fill" id="hp-fill"></span></span>
+              <span class="hp__text" id="hp-text">100 / 100</span>
+            </div>
+            <p class="hud__timer" id="hud-time">0:00</p>
+            <div class="hud__right">
+              <span class="hud__kills" title="Critters bonked"><span aria-hidden="true">🐿️</span> <span id="hud-kills">0</span></span>
+              <button class="icon-btn" type="button" data-action="pause" aria-label="Pause game">
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor"/></svg>
+              </button>
+            </div>
           </div>
         </div>
 
+        <p class="toast" id="game-toast" role="status" aria-live="polite"></p>
 
-      </body>
-      </html>
+        <div class="overlay overlay--start" id="overlay-start" role="dialog" aria-labelledby="start-title">
+          <div class="panel">
+            <p class="panel__eyebrow">Mission briefing</p>
+            <h3 id="start-title" class="panel__title">The squirrels have reached orbit.</h3>
+            <p class="panel__text">
+              Comet is the last good dog between the Nut Armada and the moon's acorn reserves.
+              Survive, scoop up star kibble to level up, and build your arsenal.
+            </p>
+            <button class="btn btn--primary btn--lg" type="button" data-action="start">Launch</button>
+            <p class="panel__meta" id="best-start" hidden></p>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlay-levelup" role="dialog" aria-labelledby="levelup-title" hidden>
+          <div class="panel panel--wide">
+            <p class="panel__eyebrow">Level up</p>
+            <h3 id="levelup-title" class="panel__title">Level 2!</h3>
+            <p class="panel__text">Choose an upgrade.</p>
+            <div class="choices" id="choices"></div>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlay-pause" role="dialog" aria-labelledby="pause-title" hidden>
+          <div class="panel">
+            <h3 id="pause-title" class="panel__title">Paused</h3>
+            <p class="panel__text">Comet is catching their breath.</p>
+            <div class="panel__actions">
+              <button class="btn btn--primary" type="button" data-action="resume">Resume</button>
+              <button class="btn btn--ghost" type="button" data-action="restart">Restart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlay-over" role="dialog" aria-labelledby="over-title" hidden>
+          <div class="panel">
+            <p class="panel__eyebrow">Mission report</p>
+            <h3 id="over-title" class="panel__title">Comet needs a nap.</h3>
+            <p class="new-best" id="new-best" hidden>★ New personal best!</p>
+            <dl class="stats">
+              <div><dt>Survived</dt><dd id="result-time">0:00</dd></div>
+              <div><dt>Critters bonked</dt><dd id="result-kills">0</dd></div>
+              <div><dt>Level</dt><dd id="result-level">1</dd></div>
+              <div><dt>Best run</dt><dd id="result-best">0:00</dd></div>
+            </dl>
+            <button class="btn btn--primary btn--lg" type="button" data-action="restart">Play again</button>
+          </div>
+        </div>
+      </div>
+
+      <ul class="controls" aria-label="Controls">
+        <li><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</span> Move</li>
+        <li><kbd>Drag</kbd> Move on touch screens</li>
+        <li><span><kbd>1</kbd>–<kbd>3</kbd></span> Pick an upgrade</li>
+        <li><span><kbd>P</kbd> / <kbd>Esc</kbd></span> Pause</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>© Varatep Buranintu</p>
+      <p>New site coming soon.</p>
+    </div>
+  </footer>
+</body>
+</html>
