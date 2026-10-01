@@ -81,12 +81,30 @@
 
   /* ------------------------------------------------------------- definitions */
 
+  // Levels past an upgrade's max are mastery ranks: +15% damage each, and every
+  // third rank adds one more projectile (up to +6).
+  const split = (l, max) => [Math.min(l, max), Math.max(0, l - max)];
+  const masteryDmg = (r) => 1 + 0.15 * r;
+  const masteryCount = (r) => Math.min(6, Math.floor(r / 3));
   const WEAPONS = {
-    fetch: (l) => ({ count: 1 + Math.floor(l / 2), dmg: 14 + 5 * (l - 1), pierce: l >= 5 ? 2 : l >= 3 ? 1 : 0, cd: 0.75 - 0.05 * l }),
-    bones: (l) => ({ count: l + 1, dmg: 7 + 3 * l, radius: 56 + 6 * l, spin: 2.6 + 0.25 * l }),
-    bark: (l) => ({ cd: 3.4 - 0.3 * l, radius: 95 + 22 * l, dmg: 12 + 6 * l, push: 260 + 30 * l }),
-    comet: (l) => ({ count: Math.ceil(l / 2), dmg: 16 + 6 * l, cd: 2.4 - 0.15 * l, range: 200 + 20 * l }),
+    fetch: (l) => {
+      const [c, r] = split(l, 6);
+      return { count: 1 + Math.floor(c / 2) + masteryCount(r), dmg: (14 + 5 * (c - 1)) * masteryDmg(r), pierce: c >= 5 ? 2 : c >= 3 ? 1 : 0, cd: 0.75 - 0.05 * c };
+    },
+    bones: (l) => {
+      const [c, r] = split(l, 5);
+      return { count: c + 1 + masteryCount(r), dmg: (7 + 3 * c) * masteryDmg(r), radius: 56 + 6 * c, spin: 2.6 + 0.25 * c };
+    },
+    bark: (l) => {
+      const [c, r] = split(l, 5);
+      return { cd: 3.4 - 0.3 * c, radius: (95 + 22 * c) * (1 + 0.06 * Math.min(r, 10)), dmg: (12 + 6 * c) * masteryDmg(r), push: 260 + 30 * c };
+    },
+    comet: (l) => {
+      const [c, r] = split(l, 5);
+      return { count: Math.ceil(c / 2) + masteryCount(r), dmg: (16 + 6 * c) * masteryDmg(r), cd: 2.4 - 0.15 * c, range: 200 + 20 * c };
+    },
   };
+  const projectileMastery = (noun) => (r) => (r % 3 === 0 && r <= 18 ? `+1 ${noun} and +15% damage.` : '+15% damage.');
 
   const FETCH_TEXT = {
     1: 'Auto-fires tennis balls at the nearest foe.',
@@ -97,18 +115,20 @@
     6: '+1 ball. Maximum fetch.',
   };
 
+  // `max` is the last regular level; `ranks` caps mastery ranks after it (Infinity = endless).
   const UPGRADES = [
-    { id: 'fetch', max: 6, icon: '🎾', name: 'Fetch Blaster', text: (l) => FETCH_TEXT[l] },
-    { id: 'bones', max: 5, icon: '🦴', name: 'Bone Orbit', text: (l) => (l === 1 ? 'Two bones orbit Comet and bonk anything they touch.' : '+1 bone, with a wider, faster orbit.') },
-    { id: 'bark', max: 5, icon: '📣', name: 'Sonic Bark', text: (l) => (l === 1 ? 'A periodic bark shockwave that knocks foes back.' : 'Bigger, stronger, more frequent barks.') },
-    { id: 'comet', max: 5, icon: '🥏', name: 'Comet Frisbee', text: (l) => (l === 1 ? 'A boomerang frisbee that slices through everything.' : l % 2 ? '+1 frisbee and more damage.' : 'More damage and range.') },
-    { id: 'speed', max: 5, icon: '🚀', name: 'Rocket Paws', text: () => '+10% movement speed.' },
-    { id: 'suit', max: 5, icon: '🛡️', name: 'Reinforced Suit', text: () => '+20 max HP and patch up 20 HP.' },
-    { id: 'magnet', max: 5, icon: '🧲', name: 'Treat Magnet', text: () => '+40% kibble pickup radius.' },
-    { id: 'regen', max: 5, icon: '💚', name: 'Good Dog Aura', text: () => 'Regenerate +0.5 HP per second.' },
-    { id: 'haste', max: 5, icon: '⚡', name: 'Zoomies', text: () => 'Weapons recharge 8% faster.' },
-    { id: 'power', max: 5, icon: '💥', name: 'Big Bark Energy', text: () => '+12% damage to everything.' },
+    { id: 'fetch', max: 6, ranks: Infinity, icon: '🎾', name: 'Fetch Blaster', text: (l) => FETCH_TEXT[l], mastery: projectileMastery('ball') },
+    { id: 'bones', max: 5, ranks: Infinity, icon: '🦴', name: 'Bone Orbit', text: (l) => (l === 1 ? 'Two bones orbit Comet and bonk anything they touch.' : '+1 bone, with a wider, faster orbit.'), mastery: projectileMastery('bone') },
+    { id: 'bark', max: 5, ranks: Infinity, icon: '📣', name: 'Sonic Bark', text: (l) => (l === 1 ? 'A periodic bark shockwave that knocks foes back.' : 'Bigger, stronger, more frequent barks.'), mastery: (r) => (r <= 10 ? '+15% damage and a 6% bigger bark.' : '+15% damage.') },
+    { id: 'comet', max: 5, ranks: Infinity, icon: '🥏', name: 'Comet Frisbee', text: (l) => (l === 1 ? 'A boomerang frisbee that slices through everything.' : l % 2 ? '+1 frisbee and more damage.' : 'More damage and range.'), mastery: projectileMastery('frisbee') },
+    { id: 'speed', max: 5, ranks: 10, icon: '🚀', name: 'Rocket Paws', text: () => '+10% movement speed.', mastery: () => '+3% movement speed.' },
+    { id: 'suit', max: 5, ranks: Infinity, icon: '🛡️', name: 'Reinforced Suit', text: () => '+20 max HP and patch up 20 HP.', mastery: () => '+10 max HP and patch up 10 HP.' },
+    { id: 'magnet', max: 5, ranks: 10, icon: '🧲', name: 'Treat Magnet', text: () => '+40% kibble pickup radius.', mastery: () => '+15% kibble pickup radius.' },
+    { id: 'regen', max: 5, ranks: Infinity, icon: '💚', name: 'Good Dog Aura', text: () => 'Regenerate +0.5 HP per second.', mastery: () => 'Regenerate +0.25 HP per second.' },
+    { id: 'haste', max: 5, ranks: 15, icon: '⚡', name: 'Zoomies', text: () => 'Weapons recharge 8% faster.', mastery: () => 'Weapons recharge 3% faster.' },
+    { id: 'power', max: 5, ranks: Infinity, icon: '💥', name: 'Big Bark Energy', text: () => '+12% damage to everything.', mastery: () => '+8% damage to everything.' },
   ];
+  const UPGRADE_BY_ID = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
   const TREAT = { id: 'treat', max: Infinity, icon: '🍖', name: 'Space Treat', text: () => 'Restore 40 HP.' };
 
   const ENEMY_TYPES = {
@@ -121,12 +141,17 @@
 
   function derivedStats(g) {
     const L = g.levels;
+    const [speed, speedR] = split(L.speed, 5);
+    const [magnet, magnetR] = split(L.magnet, 5);
+    const [regen, regenR] = split(L.regen, 5);
+    const [haste, hasteR] = split(L.haste, 5);
+    const [power, powerR] = split(L.power, 5);
     return {
-      speed: 175 * (1 + 0.1 * L.speed),
-      magnet: 110 * (1 + 0.4 * L.magnet),
-      regen: 0.5 * L.regen,
-      cdMul: Math.pow(0.92, L.haste),
-      dmgMul: 1 + 0.12 * L.power,
+      speed: 175 * (1 + 0.1 * speed + 0.03 * speedR),
+      magnet: 110 * (1 + 0.4 * magnet + 0.15 * magnetR),
+      regen: 0.5 * regen + 0.25 * regenR,
+      cdMul: Math.pow(0.92, haste) * Math.pow(0.97, hasteR),
+      dmgMul: 1 + 0.12 * power + 0.08 * powerR,
     };
   }
 
@@ -205,15 +230,20 @@
 
   function spawnEnemy(g, type, x, y) {
     const def = ENEMY_TYPES[type];
-    const scale = type === 'boss' ? 1 + g.bosses * 0.9 : 1 + g.t / 150;
+    // Past 5 minutes health grows faster than linearly so mastery ranks stay matched.
+    const late = Math.max(0, (g.t - 300) / 150);
+    const scale = type === 'boss' ? (1 + g.bosses * 0.9) * (1 + late) : 1 + g.t / 150 + late ** 1.5;
+    const elite = type !== 'boss' && Math.random() < Math.min(0.25, Math.max(0, (g.t - 240) / 1200));
+    const k = elite ? 3 : 1;
     g.enemies.push({
       type, x, y,
-      r: def.r,
-      hp: def.hp * scale,
-      maxHp: def.hp * scale,
+      elite,
+      r: def.r * (elite ? 1.2 : 1),
+      hp: def.hp * scale * k,
+      maxHp: def.hp * scale * k,
       speed: def.speed * (1 + Math.min(0.25, g.t / 800)) * rand(0.9, 1.1),
-      dmg: def.dmg,
-      xp: def.xp,
+      dmg: def.dmg * (elite ? 1.5 : 1),
+      xp: def.xp * k,
       kx: 0, ky: 0,
       flash: 0,
       face: 1,
@@ -911,7 +941,17 @@
     if (e.type === 'boss') {
       drawBoss(e, t);
     } else {
-      ctx.scale(e.face, 1);
+      if (e.elite) {
+        ctx.globalAlpha = 0.22 + 0.08 * Math.sin(t * 6 + e.phase);
+        fillCircle(0, -2, e.r * 1.35, '#ffd166');
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(255, 209, 102, 0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, -2, e.r * 1.35, 0, TAU);
+        ctx.stroke();
+      }
+      ctx.scale(e.face * (e.elite ? 1.2 : 1), e.elite ? 1.2 : 1);
       ctx.translate(0, Math.sin(t * 10 + e.phase) * 1.2);
       DRAW[e.type](t + e.phase);
       if (e.flash > 0) fillCircle(0, -2, e.r * 1.05, 'rgba(255, 255, 255, 0.6)');
@@ -1253,38 +1293,54 @@
   }
 
   function offerUpgrades(g) {
-    const pool = UPGRADES.filter((u) => g.levels[u.id] < u.max);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
+    // Regular levels are three times as likely to show up as mastery ranks.
+    const pool = UPGRADES.filter((u) => g.levels[u.id] < u.max + u.ranks).map((u) => ({ u, w: g.levels[u.id] < u.max ? 3 : 1 }));
+    const picks = [];
+    while (picks.length < 3 && pool.length) {
+      let r = Math.random() * pool.reduce((sum, o) => sum + o.w, 0);
+      const i = pool.findIndex((o) => (r -= o.w) < 0);
+      picks.push(pool.splice(i < 0 ? pool.length - 1 : i, 1)[0].u);
     }
-    const picks = pool.slice(0, 3);
-    if (picks.length < 3) picks.push(TREAT);
+    // A snack only fills an empty slot, and only when Comet is actually hurt.
+    if (picks.length < 3 && g.player.hp < g.player.maxHp) picks.push(TREAT);
     return picks;
   }
 
   function choiceCard(u, i, g) {
     const current = g.levels[u.id] || 0;
     const next = current + 1;
-    const tag = u === TREAT ? 'Snack' : current === 0 ? 'New!' : `Lv ${next}`;
+    const rank = u === TREAT ? 0 : next - u.max;
+    const tag = u === TREAT ? 'Snack' : current === 0 ? 'New!' : rank > 0 ? `★ Mastery ${rank}` : `Lv ${next}`;
+    const desc = rank > 0 ? u.mastery(rank) : u.text(next);
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'choice';
+    btn.className = rank > 0 ? 'choice choice--mastery' : 'choice';
     btn.innerHTML =
       `<span class="choice-key" aria-hidden="true">${i + 1}</span>` +
       `<span class="choice-icon" aria-hidden="true">${u.icon}</span>` +
       `<span class="choice-name">${u.name}</span>` +
       `<span class="choice-tag">${tag}</span>` +
-      `<span class="choice-desc">${u.text(next)}</span>`;
+      `<span class="choice-desc">${desc}</span>`;
     btn.addEventListener('click', () => choose(u.id));
     return btn;
   }
 
   function openLevelUp() {
     const g = game;
+    const picks = offerUpgrades(g);
+    // Nothing left to choose: top up health without interrupting the run.
+    if (!picks.length || (picks.length === 1 && picks[0] === TREAT)) {
+      const healed = Math.min(40, g.player.maxHp - g.player.hp);
+      heal(g, 40);
+      g.pendingLevels--;
+      if (healed > 0) toast(`Level ${g.player.level - g.pendingLevels}! +${Math.round(healed)} HP`);
+      if (g.pendingLevels > 0) openLevelUp();
+      else if (state !== 'playing') setState('playing');
+      return;
+    }
     setState('levelup');
     ui.levelTitle.textContent = `Level ${g.player.level - g.pendingLevels + 1}!`;
-    ui.choices.replaceChildren(...offerUpgrades(g).map((u, i) => choiceCard(u, i, g)));
+    ui.choices.replaceChildren(...picks.map((u, i) => choiceCard(u, i, g)));
     focusEl(ui.choices.firstElementChild);
   }
 
@@ -1296,8 +1352,9 @@
     } else {
       g.levels[id]++;
       if (id === 'suit') {
-        g.player.maxHp += 20;
-        heal(g, 20);
+        const bonus = g.levels.suit > UPGRADE_BY_ID.suit.max ? 10 : 20;
+        g.player.maxHp += bonus;
+        heal(g, bonus);
       }
       g.stats = derivedStats(g);
     }

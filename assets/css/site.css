@@ -768,6 +768,15 @@ kbd {
   font-weight: 600;
 }
 
+.choice--mastery .choice-tag {
+  background: rgb(255 209 102 / 0.14);
+  color: var(--game-gold);
+}
+
+.choice--mastery .choice-icon {
+  box-shadow: inset 0 0 0 1px rgb(255 209 102 / 0.45);
+}
+
 .choice-desc {
   grid-area: desc;
   margin-top: var(--space-2);
