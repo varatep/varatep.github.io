@@ -55,7 +55,7 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const mod = (a, n) => ((a % n) + n) % n;
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  const xpNeeded = (level) => Math.round(2 + level * 2 + Math.pow(level, 1.55));
+  const xpNeeded = (level) => Math.round(3 + level * 1.5 + Math.pow(level, 1.3));
 
   /* ---------------------------------------------------------------- viewport */
 
@@ -123,7 +123,7 @@
     const L = g.levels;
     return {
       speed: 175 * (1 + 0.1 * L.speed),
-      magnet: 80 * (1 + 0.4 * L.magnet),
+      magnet: 110 * (1 + 0.4 * L.magnet),
       regen: 0.5 * L.regen,
       cdMul: Math.pow(0.92, L.haste),
       dmgMul: 1 + 0.12 * L.power,
@@ -147,7 +147,7 @@
       levels: { fetch: 1, bones: 0, bark: 0, comet: 0, speed: 0, suit: 0, magnet: 0, regen: 0, haste: 0, power: 0 },
       cd: { fetch: 0.4, bark: 1.5, comet: 1 },
       spawnTimer: 0.5,
-      nextSwarm: 50,
+      nextSwarm: 60,
       nextBoss: 120,
       bosses: 0,
       boneAngle: 0,
@@ -205,13 +205,13 @@
 
   function spawnEnemy(g, type, x, y) {
     const def = ENEMY_TYPES[type];
-    const scale = type === 'boss' ? 1 + g.bosses * 0.9 : 1 + g.t / 90;
+    const scale = type === 'boss' ? 1 + g.bosses * 0.9 : 1 + g.t / 150;
     g.enemies.push({
       type, x, y,
       r: def.r,
       hp: def.hp * scale,
       maxHp: def.hp * scale,
-      speed: def.speed * (1 + Math.min(0.35, g.t / 600)) * rand(0.9, 1.1),
+      speed: def.speed * (1 + Math.min(0.25, g.t / 800)) * rand(0.9, 1.1),
       dmg: def.dmg,
       xp: def.xp,
       kx: 0, ky: 0,
@@ -238,18 +238,21 @@
     return 'squirrel';
   }
 
+  // How many enemies may be alive at once; grows slowly so late game stays survivable.
+  const activeCap = (g) => Math.min(MAX_ENEMIES, Math.floor(40 + g.t * 0.4));
+
   function updateSpawns(g, dt) {
     g.spawnTimer -= dt;
     if (g.spawnTimer <= 0) {
-      g.spawnTimer = Math.max(0.22, 1.1 - g.t / 160);
-      const n = 1 + Math.floor(g.t / 50);
-      for (let i = 0; i < n && g.enemies.length < MAX_ENEMIES; i++) {
+      g.spawnTimer = Math.max(0.35, 1.1 - g.t / 240);
+      const n = 1 + Math.floor(g.t / 90);
+      for (let i = 0; i < n && g.enemies.length < activeCap(g); i++) {
         const [x, y] = spawnPoint(g);
         spawnEnemy(g, pickType(g.t), x, y);
       }
     }
     if (g.t >= g.nextSwarm) {
-      g.nextSwarm += 45;
+      g.nextSwarm += 60;
       spawnSwarm(g);
     }
     if (g.t >= g.nextBoss) {
@@ -263,10 +266,10 @@
 
   function spawnSwarm(g) {
     const p = g.player;
-    const n = Math.min(60, 12 + Math.floor(g.t / 6));
+    const n = Math.min(40, 12 + Math.floor(g.t / 10));
     const R = Math.hypot(viewW, viewH) / 2 + 30;
     const type = g.t < 100 || Math.random() < 0.5 ? 'squirrel' : 'bird';
-    for (let i = 0; i < n && g.enemies.length < MAX_ENEMIES; i++) {
+    for (let i = 0; i < n && g.enemies.length < activeCap(g) + n; i++) {
       const a = (i / n) * TAU;
       spawnEnemy(g, type, p.x + Math.cos(a) * R, p.y + Math.sin(a) * R);
     }
