@@ -96,6 +96,39 @@
     }
 
     const ready = () => enabled && ac && ac.state === 'running';
+
+    // iOS mutes Web Audio when the ring/silent switch is on unless the page is
+    // treated as media playback. Ask for that directly where Safari supports it
+    // (iOS 17+), and keep a silent looping <audio> track playing as a fallback.
+    let mediaKeepAlive = null;
+    function silentWav() {
+      const n = 4000;
+      const bytes = new Uint8Array(44 + n);
+      const v = new DataView(bytes.buffer);
+      const str = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+      str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+      str(36, 'data'); v.setUint32(40, n, true);
+      bytes.fill(128, 44);
+      let bin = '';
+      for (const b of bytes) bin += String.fromCharCode(b);
+      return 'data:audio/wav;base64,' + btoa(bin);
+    }
+    function unlockMediaPlayback() {
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      } catch { /* not supported */ }
+      if (!mediaKeepAlive) {
+        mediaKeepAlive = document.createElement('audio');
+        mediaKeepAlive.setAttribute('playsinline', '');
+        mediaKeepAlive.setAttribute('aria-hidden', 'true');
+        mediaKeepAlive.loop = true;
+        mediaKeepAlive.src = silentWav();
+      }
+      const playing = mediaKeepAlive.play();
+      if (playing) playing.catch(() => { /* blocked; Web Audio may still work */ });
+    }
     const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
     function throttle(name, ms) {
@@ -223,14 +256,23 @@
         if (on && !ac && !init()) return false;
         enabled = on;
         if (on) {
+          unlockMediaPlayback();
           ac.resume();
           if (playing) startMusic();
           tone({ f0: 660, f1: 990, dur: 0.1, vol: 0.06 });
         } else {
           stopMusic();
+          if (mediaKeepAlive) mediaKeepAlive.pause();
           if (ac) ac.suspend();
         }
         return true;
+      },
+      // iOS suspends or interrupts audio when the app goes to the background;
+      // it can only be restarted from a tap or key press.
+      wake() {
+        if (!ac || !enabled || ac.state === 'running') return;
+        unlockMediaPlayback();
+        ac.resume();
       },
       play(name) {
         if (ready()) SFX[name]();
@@ -241,9 +283,13 @@
       stopMusic,
       suspend() {
         if (ac && enabled) ac.suspend();
+        if (mediaKeepAlive) mediaKeepAlive.pause();
       },
       resume() {
-        if (ac && enabled) ac.resume();
+        if (ac && enabled) {
+          unlockMediaPlayback();
+          ac.resume();
+        }
       },
     };
   })();
@@ -1697,6 +1743,13 @@
     else if (action === 'pause') pause();
     else if (action === 'sound') toggleSound();
   });
+
+  // Restart audio that iOS suspended, on the next tap or key press while playing.
+  for (const type of ['pointerdown', 'keydown']) {
+    window.addEventListener(type, () => {
+      if (state !== 'paused' && state !== 'over' && state !== 'menu') sound.wake();
+    }, { capture: true });
+  }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) pause();
