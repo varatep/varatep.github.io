@@ -232,6 +232,22 @@ a {
   background: var(--color-surface-muted);
 }
 
+.btn--sm {
+  min-height: 2.5rem;
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+/* Sound toggle: the icon shows waves when on and a cross when off. */
+[data-action="sound"] .sound-icon__on,
+[data-action="sound"][aria-pressed="true"] .sound-icon__off {
+  display: none;
+}
+
+[data-action="sound"][aria-pressed="true"] .sound-icon__on {
+  display: inline;
+}
+
 .btn--lg {
   min-height: 3.25rem;
   padding-inline: var(--space-6);

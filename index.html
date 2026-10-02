@@ -79,6 +79,9 @@
             <p class="hud__timer" id="hud-time">0:00</p>
             <div class="hud__right">
               <span class="hud__kills" title="Critters bonked"><span aria-hidden="true">🐿️</span> <span id="hud-kills">0</span></span>
+              <button class="icon-btn" type="button" data-action="sound" aria-pressed="false" aria-label="Sound" title="Sound (M)">
+                <svg class="sound-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path class="sound-icon__on" d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.3 6.3 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="sound-icon__off" d="M10.5 6l4 4m0-4l-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
               <button class="icon-btn" type="button" data-action="pause" aria-label="Pause game">
                 <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor"/></svg>
               </button>
@@ -97,6 +100,10 @@
               Survive, scoop up star kibble to level up, and build your arsenal.
             </p>
             <button class="btn btn--primary btn--lg" type="button" data-action="start">Launch</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-action="sound" aria-pressed="false">
+              <svg class="sound-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path class="sound-icon__on" d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.3 6.3 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="sound-icon__off" d="M10.5 6l4 4m0-4l-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span class="sound-label">Sound off</span>
+            </button>
             <p class="panel__meta" id="best-start" hidden></p>
           </div>
         </div>
@@ -117,6 +124,10 @@
             <div class="panel__actions">
               <button class="btn btn--primary" type="button" data-action="resume">Resume</button>
               <button class="btn btn--ghost" type="button" data-action="restart">Restart</button>
+              <button class="btn btn--ghost" type="button" data-action="sound" aria-pressed="false">
+                <svg class="sound-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path class="sound-icon__on" d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.3 6.3 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="sound-icon__off" d="M10.5 6l4 4m0-4l-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span class="sound-label">Sound off</span>
+              </button>
             </div>
           </div>
         </div>
@@ -142,6 +153,7 @@
         <li><kbd>Drag</kbd> Move on touch screens</li>
         <li><span><kbd>1</kbd>–<kbd>3</kbd></span> Pick an upgrade</li>
         <li><span><kbd>P</kbd> / <kbd>Esc</kbd></span> Pause</li>
+        <li><kbd>M</kbd> Sound on/off</li>
       </ul>
     </section>
   </main>

@@ -57,6 +57,197 @@
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const xpNeeded = (level) => Math.round(3 + level * 1.5 + Math.pow(level, 1.3));
 
+  /* ------------------------------------------------------------------- audio */
+
+  // Everything is synthesized with Web Audio, so there are no files to load.
+  // Sound starts off; the AudioContext is only created when the player turns it on.
+  const sound = (() => {
+    let ac = null;
+    let sfxBus = null;
+    let musicBus = null;
+    let noiseBuf = null;
+    let enabled = false;
+    let musicOn = false;
+    let musicTimer = 0;
+    let nextStep = 0;
+    let step = 0;
+    let gemCombo = 0;
+    let lastGem = 0;
+    const lastPlayed = {};
+
+    function init() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      const master = ac.createGain();
+      master.gain.value = 0.55;
+      const comp = ac.createDynamicsCompressor();
+      master.connect(comp);
+      comp.connect(ac.destination);
+      sfxBus = ac.createGain();
+      sfxBus.connect(master);
+      musicBus = ac.createGain();
+      musicBus.gain.value = 0.5;
+      musicBus.connect(master);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      return true;
+    }
+
+    const ready = () => enabled && ac && ac.state === 'running';
+    const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
+
+    function throttle(name, ms) {
+      const now = performance.now();
+      if (now - (lastPlayed[name] || 0) < ms) return false;
+      lastPlayed[name] = now;
+      return true;
+    }
+
+    function tone({ type = 'sine', f0, f1 = f0, dur = 0.1, vol = 0.1, at = 0, attack = 0.005, bus = sfxBus }) {
+      const t = at || ac.currentTime;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g);
+      g.connect(bus);
+      o.start(t);
+      o.stop(t + dur + 0.05);
+    }
+
+    function noise({ dur = 0.1, vol = 0.1, freq = 1000, f1 = freq, q = 1, filter = 'bandpass', at = 0, bus = sfxBus }) {
+      const t = at || ac.currentTime;
+      const src = ac.createBufferSource();
+      src.buffer = noiseBuf;
+      const f = ac.createBiquadFilter();
+      f.type = filter;
+      f.Q.value = q;
+      f.frequency.setValueAtTime(freq, t);
+      if (f1 !== freq) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      const g = ac.createGain();
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f);
+      f.connect(g);
+      g.connect(bus);
+      src.start(t, Math.random() * 0.5);
+      src.stop(t + dur + 0.05);
+    }
+
+    const arpeggio = (notes, gap, opts) => notes.forEach((n, i) => tone({ f0: midi(n), at: ac.currentTime + i * gap, ...opts }));
+
+    const SFX = {
+      shoot: () => throttle('shoot', 70) && tone({ type: 'triangle', f0: 620, f1: 300, dur: 0.07, vol: 0.05 }),
+      hit: () => throttle('hit', 45) && noise({ dur: 0.035, vol: 0.05, freq: 2600, q: 0.8 }),
+      pop: () => throttle('pop', 40) && tone({ f0: rand(650, 850), f1: 1500, dur: 0.08, vol: 0.06 }),
+      gem: () => {
+        if (!throttle('gem', 35)) return;
+        const now = performance.now();
+        gemCombo = now - lastGem < 600 ? Math.min(gemCombo + 1, 24) : 0;
+        lastGem = now;
+        tone({ f0: midi(76 + gemCombo), dur: 0.07, vol: 0.05 });
+      },
+      bark: () => {
+        tone({ type: 'square', f0: 260, f1: 90, dur: 0.15, vol: 0.06 });
+        noise({ dur: 0.12, vol: 0.12, freq: 700, f1: 250, filter: 'lowpass' });
+      },
+      whoosh: () => throttle('whoosh', 120) && noise({ dur: 0.3, vol: 0.06, freq: 500, f1: 3200, q: 3 }),
+      hurt: () => {
+        tone({ type: 'square', f0: 220, f1: 70, dur: 0.22, vol: 0.08 });
+        noise({ dur: 0.14, vol: 0.14, freq: 500, filter: 'lowpass' });
+      },
+      levelup: () => arpeggio([72, 76, 79, 84], 0.07, { type: 'triangle', dur: 0.2, vol: 0.09 }),
+      select: () => tone({ f0: 880, f1: 1320, dur: 0.12, vol: 0.08 }),
+      heal: () => arpeggio([79, 84], 0.08, { dur: 0.18, vol: 0.07 }),
+      start: () => arpeggio([60, 67, 72], 0.06, { type: 'triangle', dur: 0.18, vol: 0.08 }),
+      swarm: () => {
+        tone({ type: 'sawtooth', f0: 110, f1: 170, dur: 0.45, vol: 0.05 });
+        tone({ type: 'sawtooth', f0: 110, f1: 170, dur: 0.45, vol: 0.05, at: ac.currentTime + 0.5 });
+      },
+      boss: () => {
+        for (let i = 0; i < 4; i++) tone({ type: 'square', f0: i % 2 ? 330 : 440, dur: 0.22, vol: 0.05, at: ac.currentTime + i * 0.25 });
+      },
+      bossDown: () => arpeggio([72, 76, 79, 84, 88], 0.09, { type: 'triangle', dur: 0.3, vol: 0.1 }),
+      gameover: () => arpeggio([69, 66, 63, 60], 0.22, { type: 'triangle', dur: 0.35, vol: 0.09 }),
+    };
+
+    // A slow minor-key loop; hi-hats join once the run heats up.
+    const CHORDS = [[57, 60, 64, 69], [53, 57, 60, 65], [48, 52, 55, 60], [55, 59, 62, 67]];
+    const ARP = [0, 1, 2, 3, 2, 1, 2, 3];
+    const STEP = 60 / 96 / 2;
+
+    function playStep(s, t) {
+      const chord = CHORDS[Math.floor(s / 8) % 4];
+      if (s % 8 === 0) {
+        tone({ f0: midi(chord[0] - 12), dur: STEP * 7, vol: 0.12, attack: 0.02, at: t, bus: musicBus });
+        for (const n of chord.slice(1, 3)) tone({ type: 'triangle', f0: midi(n), dur: STEP * 8.5, vol: 0.02, attack: 0.4, at: t, bus: musicBus });
+      }
+      if (s % 4 !== 3) tone({ f0: midi(chord[ARP[s % 8]] + 12), dur: STEP * 1.6, vol: 0.03, attack: 0.01, at: t, bus: musicBus });
+      if (game && game.t > 90 && s % 2 === 1) noise({ dur: 0.04, vol: 0.025, freq: 8000, filter: 'highpass', at: t, bus: musicBus });
+    }
+
+    function scheduleMusic() {
+      while (nextStep < ac.currentTime + 0.3) {
+        playStep(step, nextStep);
+        nextStep += STEP;
+        step = (step + 1) % 32;
+      }
+    }
+
+    function startMusic() {
+      if (!enabled || musicOn) return;
+      musicOn = true;
+      step = 0;
+      nextStep = ac.currentTime + 0.1;
+      scheduleMusic();
+      musicTimer = setInterval(scheduleMusic, 100);
+    }
+
+    function stopMusic() {
+      musicOn = false;
+      clearInterval(musicTimer);
+    }
+
+    return {
+      get enabled() {
+        return enabled;
+      },
+      // Must be called from a click or key press so the browser allows audio.
+      setEnabled(on, playing) {
+        if (on && !ac && !init()) return false;
+        enabled = on;
+        if (on) {
+          ac.resume();
+          if (playing) startMusic();
+          tone({ f0: 660, f1: 990, dur: 0.1, vol: 0.06 });
+        } else {
+          stopMusic();
+          if (ac) ac.suspend();
+        }
+        return true;
+      },
+      play(name) {
+        if (ready()) SFX[name]();
+      },
+      startMusic() {
+        if (enabled) startMusic();
+      },
+      stopMusic,
+      suspend() {
+        if (ac && enabled) ac.suspend();
+      },
+      resume() {
+        if (ac && enabled) ac.resume();
+      },
+    };
+  })();
+
   /* ---------------------------------------------------------------- viewport */
 
   let vw = 1;
@@ -291,6 +482,7 @@
       spawnEnemy(g, 'boss', x, y);
       g.bosses++;
       toast('⚠ The Nut Overlord approaches!');
+      sound.play('boss');
     }
   }
 
@@ -304,6 +496,7 @@
       spawnEnemy(g, type, p.x + Math.cos(a) * R, p.y + Math.sin(a) * R);
     }
     toast(type === 'bird' ? 'A flock of space pigeons surrounds you!' : 'Squirrel swarm incoming!');
+    sound.play('swarm');
   }
 
   /* ----------------------------------------------------------------- combat */
@@ -318,6 +511,7 @@
     e.ky += ky * kb;
     addText(g, e.x, e.y - e.r - 4, Math.round(dmg));
     if (e.hp <= 0) killEnemy(g, e);
+    else sound.play('hit');
   }
 
   function killEnemy(g, e) {
@@ -330,8 +524,10 @@
       heal(g, 40);
       g.shake = 16;
       toast('The Nut Overlord is defeated! 🥜');
+      sound.play('bossDown');
     } else {
       burst(g, e.x, e.y, color, 8, 150);
+      sound.play('pop');
       dropGem(g, e.x, e.y, e.xp);
     }
   }
@@ -342,6 +538,7 @@
     p.inv = 0.55;
     g.shake = Math.max(g.shake, 7);
     burst(g, p.x, p.y, '#ff6b8a', 8, 160);
+    sound.play('hurt');
     shell.classList.add('is-hurt');
     clearTimeout(damagePlayer.timer);
     damagePlayer.timer = setTimeout(() => shell.classList.remove('is-hurt'), 160);
@@ -469,6 +666,7 @@
           g.balls.push({ x: p.x, y: p.y, vx: Math.cos(a) * 460, vy: Math.sin(a) * 460, r: 5, dmg: w.dmg, pierce: w.pierce, life: 1.3, hit: new Set(), spin: 0 });
         }
         g.cd.fetch = w.cd * S.cdMul;
+        sound.play('shoot');
       } else {
         g.cd.fetch = 0.15;
       }
@@ -503,6 +701,7 @@
       if (g.cd.bark <= 0) {
         const w = WEAPONS.bark(L.bark);
         g.waves.push({ r: 10, max: w.radius, dmg: w.dmg, push: w.push, hit: new Set() });
+        sound.play('bark');
         g.cd.bark = w.cd * S.cdMul;
       }
     }
@@ -517,6 +716,7 @@
           g.frisbees.push({ a: base + (i * TAU) / w.count, age: 0, dur: 1.15, range: w.range, dmg: w.dmg, x: p.x, y: p.y, trail: [] });
         }
         g.cd.comet = w.cd * S.cdMul;
+        sound.play('whoosh');
       }
     }
 
@@ -645,6 +845,7 @@
       if (d < p.r + 6) {
         gem.taken = true;
         gainXp(g, gem.v);
+        sound.play('gem');
       }
     }
     g.gems = g.gems.filter((gem) => !gem.taken);
@@ -1278,17 +1479,22 @@
     setState('playing');
     updateHud();
     focusEl(canvas);
+    sound.stopMusic();
+    sound.startMusic();
+    sound.play('start');
   }
 
   function pause() {
     if (state !== 'playing') return;
     setState('paused');
+    sound.suspend();
     focusEl(overlays.paused.querySelector('[data-action="resume"]'));
   }
 
   function resume() {
     if (state !== 'paused') return;
     setState('playing');
+    sound.resume();
     focusEl(canvas);
   }
 
@@ -1333,11 +1539,15 @@
       const healed = Math.min(40, g.player.maxHp - g.player.hp);
       heal(g, 40);
       g.pendingLevels--;
-      if (healed > 0) toast(`Level ${g.player.level - g.pendingLevels}! +${Math.round(healed)} HP`);
+      if (healed > 0) {
+        toast(`Level ${g.player.level - g.pendingLevels}! +${Math.round(healed)} HP`);
+        sound.play('heal');
+      }
       if (g.pendingLevels > 0) openLevelUp();
       else if (state !== 'playing') setState('playing');
       return;
     }
+    if (state !== 'levelup') sound.play('levelup');
     setState('levelup');
     ui.levelTitle.textContent = `Level ${g.player.level - g.pendingLevels + 1}!`;
     ui.choices.replaceChildren(...picks.map((u, i) => choiceCard(u, i, g)));
@@ -1347,6 +1557,7 @@
   function choose(id) {
     const g = game;
     if (state !== 'levelup') return;
+    sound.play('select');
     if (id === 'treat') {
       heal(g, 40);
     } else {
@@ -1388,6 +1599,8 @@
     ui.resultLevel.textContent = String(g.player.level);
     ui.resultBest.textContent = fmtTime(Math.max(best, g.t));
     ui.newBest.hidden = !isBest;
+    sound.stopMusic();
+    sound.play('gameover');
     setState('over');
     focusEl(overlays.over.querySelector('[data-action="restart"]'));
   }
@@ -1401,7 +1614,25 @@
     ArrowDown: 'down', KeyS: 'down',
   };
 
+  const soundButtons = shell.querySelectorAll('[data-action="sound"]');
+  function toggleSound() {
+    if (!sound.setEnabled(!sound.enabled, state === 'playing' || state === 'levelup')) {
+      toast('Sound is not supported in this browser.');
+      return;
+    }
+    if (state === 'paused') sound.suspend();
+    for (const btn of soundButtons) {
+      btn.setAttribute('aria-pressed', String(sound.enabled));
+      const label = btn.querySelector('.sound-label');
+      if (label) label.textContent = sound.enabled ? 'Sound on' : 'Sound off';
+    }
+  }
+
   window.addEventListener('keydown', (ev) => {
+    if (ev.code === 'KeyM' && !ev.repeat && !ev.metaKey && !ev.ctrlKey && !ev.altKey) {
+      toggleSound();
+      return;
+    }
     const dir = KEYMAP[ev.code];
     if (dir && state === 'playing') {
       keys[dir] = true;
@@ -1464,6 +1695,7 @@
     if (action === 'start' || action === 'restart') startRun();
     else if (action === 'resume') resume();
     else if (action === 'pause') pause();
+    else if (action === 'sound') toggleSound();
   });
 
   document.addEventListener('visibilitychange', () => {
